@@ -9,34 +9,41 @@ const videoConstraints = {
 
 interface InputDataProps {
 	setImgSrc: (imgSrc: string) => void;
+	setFocalLength: (focalLength: string) => void;
+	setDiopters: (diopters: string) => void;
 }
 
-const InputData = ({ setImgSrc }: InputDataProps) => {
+const InputData = ({
+	setImgSrc,
+	setFocalLength,
+	setDiopters,
+}: InputDataProps) => {
+	const [isCalibrated, setIsCalibrated] = React.useState<boolean>(false);
 	const [file, setFile] = React.useState<string>("");
+	const [distance, setDistance] = React.useState<string>("");
+	const [width, setWidth] = React.useState<string>("");
+	const [calibratedData, setCalibratedData] = React.useState({
+		distance: "",
+		width: "",
+		focalLength: "",
+	});
 
 	const webcamRef = React.useRef<Webcam>(null);
 
 	const captureWebcamPhoto = React.useCallback(
-		(handlerFxn, event) => {
+		(handlerFxn) => {
 			const imageSrc = webcamRef?.current?.getScreenshot();
 			setImgSrc(imageSrc ? imageSrc : "");
 			setFile(imageSrc ? imageSrc : "");
-			handlerFxn(imageSrc, event);
+			handlerFxn(imageSrc);
 		},
 		[webcamRef, setImgSrc]
 	);
 
-	const handleCalibration = (imageSrc: string, event: any) => {
-		const elementsArray = [...event.target.elements];
-		const formDataObj = elementsArray.reduce((acc, elem) => {
-			if (elem.id) {
-				acc[elem.id] = elem.value;
-			}
-			return acc;
-		}, {});
+	const handleCalibration = (imageSrc: string) => {
 		const formData = new FormData();
-		formData.append("distance", formDataObj.distance.toString());
-		formData.append("width", formDataObj.pd.toString());
+		formData.append("distance", distance);
+		formData.append("width", width);
 		formData.append("file", imageSrc);
 		fetch("http://localhost:5000/api/calibrate", {
 			method: "POST",
@@ -45,17 +52,28 @@ const InputData = ({ setImgSrc }: InputDataProps) => {
 		})
 			.then((response) => response.json())
 			.then((result) => {
-				console.log("Success:", result);
+				console.log("Success:", result, typeof result.focal_length);
+				setDiopters("");
+				setFocalLength(result.focal_length.toFixed(2));
+				setCalibratedData({
+					distance: result.distance,
+					width: result.width,
+					focalLength: result.focal_length,
+				});
+				setIsCalibrated(true);
 			})
 			.catch((error) => {
 				console.error("Error:", error);
 			});
 	};
 
-	const handleEstimation = (imageSrc: string, event: any) => {
+	const handleEstimation = (imageSrc: string) => {
+		console.log(calibratedData);
 		const formData = new FormData();
+		formData.append("focalLength", calibratedData.focalLength);
+		formData.append("distance", calibratedData.distance);
+		formData.append("width", calibratedData.width);
 		formData.append("file", imageSrc);
-
 		fetch("http://localhost:5000/api/estimate", {
 			method: "POST",
 			mode: "cors",
@@ -63,7 +81,8 @@ const InputData = ({ setImgSrc }: InputDataProps) => {
 		})
 			.then((response) => response.json())
 			.then((result) => {
-				console.log("Success:", result);
+				console.log("Success:", result, typeof result.diopters);
+				setDiopters(result.diopters.toFixed(2));
 			})
 			.catch((error) => {
 				console.error("Error:", error);
@@ -76,11 +95,11 @@ const InputData = ({ setImgSrc }: InputDataProps) => {
 		// caputure photo and ...
 		// if calibrate; post to calibrate
 		if (action === "calibrate") {
-			captureWebcamPhoto(handleCalibration, event);
+			captureWebcamPhoto(handleCalibration);
 		}
 		// otherwise skip calibrate and post to estimate
 		else if (action === "estimate") {
-			captureWebcamPhoto(handleEstimation, event);
+			captureWebcamPhoto(handleEstimation);
 		}
 	};
 
@@ -94,6 +113,7 @@ const InputData = ({ setImgSrc }: InputDataProps) => {
 					name='distance'
 					defaultValue={0}
 					min={0}
+					onChange={(e) => setDistance(e.target.value)}
 				/>{" "}
 				cm
 				<br />
@@ -106,6 +126,7 @@ const InputData = ({ setImgSrc }: InputDataProps) => {
 					step='0.1'
 					defaultValue={0.0}
 					min={0}
+					onChange={(e) => setWidth(e.target.value)}
 				/>{" "}
 				cm
 				<br />
@@ -124,7 +145,12 @@ const InputData = ({ setImgSrc }: InputDataProps) => {
 					name='calibrate'
 					value='Calibrate Focal Length'
 				/>{" "}
-				<input type='submit' name='estimate' value='Estimate Diopters' />
+				<input
+					type='submit'
+					name='estimate'
+					value='Estimate Diopters'
+					disabled={!isCalibrated}
+				/>
 			</form>
 		</div>
 	);
