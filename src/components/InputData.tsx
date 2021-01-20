@@ -47,7 +47,7 @@ const InputData = ({
 		formData.append("file", imageSrc);
 		const prodEndpoint = "https://endmyopia-api.herokuapp.com/api/calibrate";
 		const devEndpoint = "http://localhost:5000/api/calibrate";
-		fetch(process.env.NODE_ENV === "production" ? prodEndpoint : devEndpoint, {
+		fetch(prodEndpoint, {
 			method: "POST",
 			mode: "cors",
 			body: formData,
@@ -76,9 +76,10 @@ const InputData = ({
 		formData.append("distance", calibratedData.distance);
 		formData.append("width", calibratedData.width);
 		formData.append("file", imageSrc);
-		const prodEndpoint = "https://endmyopia-api.herokuapp.com/api/calibrate";
+		const prodEndpoint = "https://endmyopia-api.herokuapp.com/api/estimate";
 		const devEndpoint = "http://localhost:5000/api/estimate";
-		fetch(process.env.NODE_ENV === "production" ? prodEndpoint : devEndpoint, {
+		// TODO: don't hard code; set env variables
+		fetch(prodEndpoint, {
 			method: "POST",
 			mode: "cors",
 			body: formData,
