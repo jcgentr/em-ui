@@ -20,8 +20,8 @@ const InputData = ({
 }: InputDataProps) => {
 	const [isCalibrated, setIsCalibrated] = React.useState<boolean>(false);
 	const [file, setFile] = React.useState<string>("");
-	const [distance, setDistance] = React.useState<string>("");
-	const [width, setWidth] = React.useState<string>("");
+	const [distance, setDistance] = React.useState<string>("0");
+	const [width, setWidth] = React.useState<string>("0.0");
 	const [calibratedData, setCalibratedData] = React.useState({
 		distance: "",
 		width: "",
@@ -82,7 +82,8 @@ const InputData = ({
 			.then((response) => response.json())
 			.then((result) => {
 				console.log("Success:", result, typeof result.diopters);
-				setDiopters(result.diopters.toFixed(2));
+				const diopters = -1 * result.diopters;
+				setDiopters(diopters.toFixed(2));
 			})
 			.catch((error) => {
 				console.error("Error:", error);
@@ -111,7 +112,7 @@ const InputData = ({
 					type='number'
 					id='distance'
 					name='distance'
-					defaultValue={0}
+					value={distance}
 					min={0}
 					onChange={(e) => setDistance(e.target.value)}
 				/>{" "}
@@ -124,7 +125,7 @@ const InputData = ({
 					id='pd'
 					name='pd'
 					step='0.1'
-					defaultValue={0.0}
+					value={width}
 					min={0}
 					onChange={(e) => setWidth(e.target.value)}
 				/>{" "}
