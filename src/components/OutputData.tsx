@@ -5,20 +5,22 @@ interface OutputDataProps {
 	imgSrc: string;
 	focalLength: string;
 	diopters: string;
-	isLoading: boolean;
+	isLoadingFL: boolean;
+	isLoadingD: boolean;
 }
 
 const OutputData = ({
 	imgSrc,
 	focalLength,
 	diopters,
-	isLoading,
+	isLoadingFL,
+	isLoadingD,
 }: OutputDataProps) => {
 	return (
 		<div>
-			<p>Focal Length: {isLoading ? <EyeSpinner id='eye' /> : focalLength}</p>
+			<p>Focal Length: {isLoadingFL ? <EyeSpinner id='eye' /> : focalLength}</p>
 			<p>
-				Estimated Diopters: {isLoading ? <EyeSpinner id='eye' /> : diopters}
+				Estimated Diopters: {isLoadingD ? <EyeSpinner id='eye' /> : diopters}
 			</p>
 			{imgSrc && <img src={imgSrc} alt='You' />}
 		</div>

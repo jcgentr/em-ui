@@ -9,7 +9,8 @@ function App() {
 	const [imgSrc, setImgSrc] = React.useState<string>("");
 	const [focalLength, setFocalLength] = React.useState<string>("");
 	const [diopters, setDiopters] = React.useState<string>("");
-	const [isLoading, setIsLoading] = React.useState<boolean>(false);
+	const [isLoadingFL, setIsLoadingFL] = React.useState<boolean>(false);
+	const [isLoadingD, setIsLoadingD] = React.useState<boolean>(false);
 
 	return (
 		<div className='App'>
@@ -19,13 +20,15 @@ function App() {
 				setImgSrc={setImgSrc}
 				setFocalLength={setFocalLength}
 				setDiopters={setDiopters}
-				setIsLoading={setIsLoading}
+				setIsLoadingFL={setIsLoadingFL}
+				setIsLoadingD={setIsLoadingD}
 			/>
 			<OutputData
 				imgSrc={imgSrc}
 				focalLength={focalLength}
 				diopters={diopters}
-				isLoading={isLoading}
+				isLoadingFL={isLoadingFL}
+				isLoadingD={isLoadingD}
 			/>
 		</div>
 	);

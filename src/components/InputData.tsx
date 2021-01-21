@@ -11,14 +11,16 @@ interface InputDataProps {
 	setImgSrc: (imgSrc: string) => void;
 	setFocalLength: (focalLength: string) => void;
 	setDiopters: (diopters: string) => void;
-	setIsLoading: (isLoading: boolean) => void;
+	setIsLoadingFL: (isLoading: boolean) => void;
+	setIsLoadingD: (isLoading: boolean) => void;
 }
 
 const InputData = ({
 	setImgSrc,
 	setFocalLength,
 	setDiopters,
-	setIsLoading,
+	setIsLoadingFL,
+	setIsLoadingD,
 }: InputDataProps) => {
 	const [isCalibrated, setIsCalibrated] = React.useState<boolean>(false);
 	const [distance, setDistance] = React.useState<string>("0");
@@ -49,8 +51,7 @@ const InputData = ({
 		const devEndpoint = "http://localhost:5000/api/calibrate";
 		const endpoint =
 			process.env.NODE_ENV === "development" ? devEndpoint : prodEndpoint;
-		console.log(process.env.NODE_ENV, endpoint);
-		setIsLoading(true);
+		setIsLoadingFL(true);
 		fetch(endpoint, {
 			method: "POST",
 			mode: "cors",
@@ -58,8 +59,8 @@ const InputData = ({
 		})
 			.then((response) => response.json())
 			.then((result) => {
-				console.log("Success:", result, typeof result.focal_length);
-				setIsLoading(false);
+				// console.log("FL Success:", result);
+				setIsLoadingFL(false);
 				setDiopters("");
 				setFocalLength(result.focal_length.toFixed(2));
 				setCalibratedData({
@@ -70,13 +71,12 @@ const InputData = ({
 				setIsCalibrated(true);
 			})
 			.catch((error) => {
-				setIsLoading(false);
+				setIsLoadingFL(false);
 				console.error("Error:", error);
 			});
 	};
 
 	const handleEstimation = (imageSrc: string) => {
-		console.log(calibratedData);
 		const formData = new FormData();
 		formData.append("focalLength", calibratedData.focalLength);
 		formData.append("distance", calibratedData.distance);
@@ -86,8 +86,7 @@ const InputData = ({
 		const devEndpoint = "http://localhost:5000/api/estimate";
 		const endpoint =
 			process.env.NODE_ENV === "development" ? devEndpoint : prodEndpoint;
-		console.log(process.env.NODE_ENV, endpoint);
-		setIsLoading(true);
+		setIsLoadingD(true);
 		fetch(endpoint, {
 			method: "POST",
 			mode: "cors",
@@ -95,13 +94,13 @@ const InputData = ({
 		})
 			.then((response) => response.json())
 			.then((result) => {
-				setIsLoading(false);
-				console.log("Success:", result, typeof result.diopters);
+				setIsLoadingD(false);
+				// console.log("D Success:", result);
 				const diopters = -1 * result.diopters;
 				setDiopters(diopters.toFixed(2));
 			})
 			.catch((error) => {
-				setIsLoading(false);
+				setIsLoadingD(false);
 				console.error("Error:", error);
 			});
 	};
@@ -109,13 +108,9 @@ const InputData = ({
 	const handleInputFormSubmit = (event: any) => {
 		event.preventDefault();
 		const action = event.nativeEvent.submitter.name;
-		// caputure photo and ...
-		// if calibrate; post to calibrate
 		if (action === "calibrate") {
 			captureWebcamPhoto(handleCalibration);
-		}
-		// otherwise skip calibrate and post to estimate
-		else if (action === "estimate") {
+		} else if (action === "estimate") {
 			captureWebcamPhoto(handleEstimation);
 		}
 	};
