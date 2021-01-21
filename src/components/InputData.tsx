@@ -11,15 +11,16 @@ interface InputDataProps {
 	setImgSrc: (imgSrc: string) => void;
 	setFocalLength: (focalLength: string) => void;
 	setDiopters: (diopters: string) => void;
+	setIsLoading: (isLoading: boolean) => void;
 }
 
 const InputData = ({
 	setImgSrc,
 	setFocalLength,
 	setDiopters,
+	setIsLoading,
 }: InputDataProps) => {
 	const [isCalibrated, setIsCalibrated] = React.useState<boolean>(false);
-	const [file, setFile] = React.useState<string>("");
 	const [distance, setDistance] = React.useState<string>("0");
 	const [width, setWidth] = React.useState<string>("0.0");
 	const [calibratedData, setCalibratedData] = React.useState({
@@ -34,7 +35,6 @@ const InputData = ({
 		(handlerFxn) => {
 			const imageSrc = webcamRef?.current?.getScreenshot();
 			setImgSrc(imageSrc ? imageSrc : "");
-			setFile(imageSrc ? imageSrc : "");
 			handlerFxn(imageSrc);
 		},
 		[webcamRef, setImgSrc]
@@ -47,7 +47,11 @@ const InputData = ({
 		formData.append("file", imageSrc);
 		const prodEndpoint = "https://endmyopia-api.herokuapp.com/api/calibrate";
 		const devEndpoint = "http://localhost:5000/api/calibrate";
-		fetch(prodEndpoint, {
+		const endpoint =
+			process.env.NODE_ENV === "development" ? devEndpoint : prodEndpoint;
+		console.log(process.env.NODE_ENV, endpoint);
+		setIsLoading(true);
+		fetch(endpoint, {
 			method: "POST",
 			mode: "cors",
 			body: formData,
@@ -55,6 +59,7 @@ const InputData = ({
 			.then((response) => response.json())
 			.then((result) => {
 				console.log("Success:", result, typeof result.focal_length);
+				setIsLoading(false);
 				setDiopters("");
 				setFocalLength(result.focal_length.toFixed(2));
 				setCalibratedData({
@@ -65,6 +70,7 @@ const InputData = ({
 				setIsCalibrated(true);
 			})
 			.catch((error) => {
+				setIsLoading(false);
 				console.error("Error:", error);
 			});
 	};
@@ -78,19 +84,24 @@ const InputData = ({
 		formData.append("file", imageSrc);
 		const prodEndpoint = "https://endmyopia-api.herokuapp.com/api/estimate";
 		const devEndpoint = "http://localhost:5000/api/estimate";
-		// TODO: don't hard code; set env variables
-		fetch(prodEndpoint, {
+		const endpoint =
+			process.env.NODE_ENV === "development" ? devEndpoint : prodEndpoint;
+		console.log(process.env.NODE_ENV, endpoint);
+		setIsLoading(true);
+		fetch(endpoint, {
 			method: "POST",
 			mode: "cors",
 			body: formData,
 		})
 			.then((response) => response.json())
 			.then((result) => {
+				setIsLoading(false);
 				console.log("Success:", result, typeof result.diopters);
 				const diopters = -1 * result.diopters;
 				setDiopters(diopters.toFixed(2));
 			})
 			.catch((error) => {
+				setIsLoading(false);
 				console.error("Error:", error);
 			});
 	};
