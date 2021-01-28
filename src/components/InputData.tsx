@@ -31,6 +31,43 @@ const InputData = ({
 		focalLength: "",
 	});
 
+	// grab local storage of calibrated data if it exists
+	React.useEffect(() => {
+		if (localStorage.getItem("distance")) {
+			setCalibratedData((state) => ({
+				...state,
+				distance: localStorage.getItem("distance")!,
+			}));
+			setDistance(localStorage.getItem("distance")!);
+		}
+		if (localStorage.getItem("width")) {
+			setCalibratedData((state) => ({
+				...state,
+				width: localStorage.getItem("width")!,
+			}));
+			setWidth(localStorage.getItem("width")!);
+		}
+		if (localStorage.getItem("focalLength")) {
+			setCalibratedData((state) => ({
+				...state,
+				focalLength: localStorage.getItem("focalLength")!,
+			}));
+			setFocalLength(
+				parseFloat(localStorage.getItem("focalLength")!).toFixed(2)
+			);
+		}
+		// eslint-disable-next-line
+	}, []);
+
+	React.useEffect(() => {
+		if (
+			calibratedData.distance &&
+			calibratedData.focalLength &&
+			calibratedData.width
+		)
+			setIsCalibrated(true);
+	}, [calibratedData]);
+
 	const webcamRef = React.useRef<Webcam>(null);
 
 	const captureWebcamPhoto = React.useCallback(
@@ -59,7 +96,6 @@ const InputData = ({
 		})
 			.then((response) => response.json())
 			.then((result) => {
-				// console.log("FL Success:", result);
 				setIsLoadingFL(false);
 				setDiopters("");
 				setFocalLength(result.focal_length.toFixed(2));
@@ -68,6 +104,9 @@ const InputData = ({
 					width: result.width,
 					focalLength: result.focal_length,
 				});
+				localStorage.setItem("distance", result.distance);
+				localStorage.setItem("width", result.width);
+				localStorage.setItem("focalLength", result.focal_length);
 				setIsCalibrated(true);
 			})
 			.catch((error) => {
@@ -150,6 +189,7 @@ const InputData = ({
 					ref={webcamRef}
 					screenshotFormat='image/jpeg'
 					videoConstraints={videoConstraints}
+					mirrored={true}
 				/>
 				<br />
 				<input
